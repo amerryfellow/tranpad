@@ -48,4 +48,8 @@ void on_option_always_on_top(void);
 void on_option_auto_indent(void);
 void on_help_about(void);
 
+gboolean on_focus_out(GtkWidget* view);
+gboolean on_focus_in(GtkWidget* view);
+void on_size_change(GtkWidget *widget, GdkRectangle *allocation, gpointer user_data);
+
 #endif /* _CALLBACK_H */

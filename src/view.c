@@ -20,6 +20,7 @@
 #include "l3afpad.h"
 #include <gdk/gdkkeysyms.h>
 #include <string.h>
+#include <malloc.h>
 
 static gint keyval;
 static gboolean view_scroll_flag = FALSE;
@@ -50,9 +51,10 @@ gboolean scroll_to_cursor(GtkTextBuffer *buffer, gdouble within_margin)
 */
 void scroll_to_cursor(GtkTextBuffer *buffer, gdouble within_margin)
 {
-	gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(pub->mw->view),
+/*	gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(pub->mw->view),
 		gtk_text_buffer_get_insert(buffer),
 		within_margin, FALSE, 0, 0);
+*/
 }
 
 gint check_text_modification(void)
@@ -60,7 +62,7 @@ gint check_text_modification(void)
 	gchar *basename, *str;
 	gint res;
 
-	if (gtk_text_buffer_get_modified(pub->mw->buffer)) {
+/*	if (gtk_text_buffer_get_modified(pub->mw->buffer)) {
 		basename = get_file_basename(pub->fi->filename, FALSE);
 		str = g_strdup_printf(_("Save changes to '%s'?"), basename);
 		g_free(basename);
@@ -75,7 +77,7 @@ gint check_text_modification(void)
 		}
 		return -1;
 	}
-
+*/
 	return 0;
 }
 
@@ -343,6 +345,8 @@ GtkWidget *create_text_view(void)
 	view = gtk_text_view_new();
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
 
+	gtk_text_view_set_wrap_mode (view, GTK_WRAP_WORD);
+
 //	gtk_text_view_set_left_margin(GTK_TEXT_VIEW(view), 1);
 //	gtk_text_view_set_right_margin(GTK_TEXT_VIEW(view), 1);
 
@@ -361,9 +365,9 @@ GtkWidget *create_text_view(void)
 		G_CALLBACK(gtk_text_view_scroll_mark_onscreen),
 		gtk_text_buffer_get_insert(buffer));*/
 	g_signal_connect_after(G_OBJECT(view), "focus-in-event",
-		G_CALLBACK(cb_focus_event), NULL);
+		G_CALLBACK(on_focus_in), NULL);
 	g_signal_connect_after(G_OBJECT(view), "focus-out-event",
-		G_CALLBACK(cb_focus_event), NULL);
+		G_CALLBACK(on_focus_out), NULL);
 
 	g_signal_connect(G_OBJECT(buffer), "mark-set",
 		G_CALLBACK(cb_mark_changed), NULL);
@@ -379,7 +383,67 @@ GtkWidget *create_text_view(void)
 		G_CALLBACK(cb_end_user_action), view);
 	cb_end_user_action(buffer, view);
 */
+	hlight_init(buffer);
 	linenum_init(view);
 
 	return view;
+}
+
+SingleCell* create_cell()
+{
+	char te[] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed efficitur, eros et cursus sollicitudin, purus diam commodo libero, id convallis metus nisi vitae massa. Integer sapien quam, porta vitae sollicitudin pharetra, euismod et massa. Sed sollicitudin elit ante, et accumsan mauris porttitor quis. Nunc porta quis sem ac faucibus. Praesent tincidunt dui aliquam nulla semper maximus. Nullam lectus est, maximus at eleifend et, maximus quis nisi. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Vestibulum sed dolor porttitor, vulputate elit in, suscipit eros. Maecenas varius fringilla neque, nec commodo orci sollicitudin eu. Curabitur cursus dolor eu elementum condimentum. Curabitur ultrices urna a libero commodo, vehicula laoreet nisi hendrerit. In sollicitudin fringilla blandit. Ut egestas imperdiet lectus, quis maximus nisi pretium et. Aliquam eget nulla non metus vulputate efficitur eu eu ante. Quisque nec augue quis eros bibendum imperdiet. Aenean egestas arcu ut porta tristique. Cras congue sed risus auctor rhoncus. Sed non luctus ligula. Aliquam non molestie metus. Aenean accumsan diam vitae dolor consectetur ullamcorper. Pellentesque eleifend magna ac maximus molestie. Nullam mattis leo et massa vulputate dapibus. Phasellus eget nibh arcu. Aenean sit amet nisl non eros cursus imperdiet. Praesent vestibulum elit vitae mattis. ";
+
+	// Allocate item
+	SingleCell* ret = malloc(sizeof(SingleCell));
+
+	// Create components
+	GtkWidget* text = create_text_view();
+	GtkWidget* vbox = gtk_vbox_new(FALSE, 0);
+
+	// Add the children to the vbox container
+	gtk_box_pack_start (vbox, text, FALSE, FALSE, 0);
+	//gtk_container_add(GTK_CONTAINER(vbox), space);
+
+	// Attach event listener to resize
+	g_signal_connect_after(G_OBJECT(text), "size-allocate",
+		G_CALLBACK(on_size_change), text);
+
+	// Get buffer from view
+	GtkTextBuffer* buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text));
+	gtk_text_buffer_set_text(buffer, te, strlen(te));
+
+	ret->vbox = vbox;
+	ret->text = text;
+	ret->buffer = buffer;
+	ret->prev = 0;
+	ret->next = 0;
+
+	return ret;
+}
+
+Row* create_row(GtkAdjustment* adj, int count)
+{
+	Row* ret = calloc(1, sizeof(Row));
+
+	// Attach the cells
+	int i;
+	SingleCell *prev, *first;
+
+	for( i=0; i<count; i++) {
+		SingleCell* c = create_cell();
+//		gtk_widget_set_size_request(c->spacer, 0, 0);
+
+		if(i != 0) {
+			prev->next = c;
+			c->prev = prev;
+		} else {
+			first = c;
+		}
+
+		prev = c;
+	}
+
+	ret->first = first;
+
+	return ret;
 }

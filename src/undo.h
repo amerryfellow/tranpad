@@ -20,14 +20,15 @@
 #ifndef _UNDO_H
 #define _UNDO_H
 
-gboolean undo_redo_real(GtkTextBuffer *buffer);
-gboolean undo_undo_real(GtkTextBuffer *buffer);
+gboolean undo_redo_real();
+gboolean undo_undo_real();
 void undo_reset_modified_step(GtkTextBuffer *buffer);
 void undo_clear_all(GtkTextBuffer *buffer);
-void undo_init(GtkWidget *view, GtkWidget *undo_button, GtkWidget *redo_button);
+void undo_init(GtkWidget *undo_button, GtkWidget *redo_button);
 void undo_set_sequency(gboolean seq);
 void undo_set_sequency_reserve(void);
-void undo_undo(GtkTextBuffer *buffer);
-void undo_redo(GtkTextBuffer *buffer);
+void undo_undo();
+void undo_redo();
+static void undo_flush_temporal_buffer(GtkTextBuffer *buffer);
 
 #endif /* _UNDO_H */

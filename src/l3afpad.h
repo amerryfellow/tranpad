@@ -68,6 +68,23 @@
 #include "gtkprint.h"
 #include <gdk/gdkkeysyms-compat.h>
 
+#define textiter(x) { \
+	Row* tempRow = pub->mw->rows; \
+	if (tempRow != NULL) { \
+		SingleCell* tempCell; \
+		int cRow = 0, cCell = 0; \
+		do { \
+			tempCell = tempRow->first; \
+			do { \
+					x \
+				cCell++; \
+			} while( (tempCell = tempCell->next) != 0 ); \
+			cCell = 0; \
+			cRow++; \
+		} while( (tempRow = tempRow->next) != 0); \
+	} \
+};
+
 typedef struct {
 	FileInfo *fi;
 	MainWin *mw;

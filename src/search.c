@@ -83,12 +83,12 @@ gboolean document_search_real(GtkWidget *textview, gint direction)
 		search_flags = search_flags | GTK_SOURCE_SEARCH_CASE_INSENSITIVE;
 
 //	if (direction == 0 || !hlight_check_searched())
-	if (direction == 0 || (direction != 2 && !hlight_check_searched()))
-		hlight_searched_strings(gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview)), string_find);
+	if (direction == 0 || (direction != 2 && !hlight_check_searched())) {
+//		hlight_searched_strings(gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview)), string_find);
+		textiter({hlight_searched_strings(tempCell->buffer, string_find);});
+	}
 
-	gtk_text_mark_set_visible(
-		gtk_text_buffer_get_selection_bound(
-			gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview))), FALSE);
+	textiter({gtk_text_mark_set_visible(gtk_text_buffer_get_selection_bound(gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview))), FALSE);});
 
 	gtk_text_buffer_get_iter_at_mark(textbuffer, &iter, gtk_text_buffer_get_insert(textbuffer));
 	if (direction < 0) {

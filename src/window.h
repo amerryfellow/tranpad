@@ -17,17 +17,22 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "view.h"
+
 #ifndef _WINDOW_H
 #define _WINDOW_H
 
 typedef struct {
-	GtkWidget *window;
-	GtkUIManager *menubar;
-	GtkWidget *view;
-	GtkTextBuffer *buffer;
+	GtkWidget		*window;
+	GtkUIManager	*menubar;
+	GtkWidget		*table;
+	Row				*rows;
+	GtkWidget		*on_focus;
+	int count;
 } MainWin;
 
 MainWin *create_main_window(void);
 void set_main_window_title(void);
+int window_get_focused_view(void);
 
 #endif /* _WINDOW_H */

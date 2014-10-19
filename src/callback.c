@@ -74,7 +74,7 @@ void on_file_open(void)
 {
 	FileInfo *fi;
 
-	if (check_text_modification())
+/*	if (check_text_modification())
 		return;
 	fi = get_fileinfo_from_selector(pub->fi, OPEN);
 	if (fi) {
@@ -89,12 +89,13 @@ void on_file_open(void)
 //			undo_init(sd->mainwin->textview, sd->mainwin->textbuffer, sd->mainwin->menubar);
 		}
 	}
+*/
 }
 #endif
 
 gint on_file_save(void)
 {
-	if (pub->fi->filename == NULL)
+/*	if (pub->fi->filename == NULL)
 		return on_file_save_as();
 	if (check_file_writable(pub->fi->filename) == FALSE)
 		return on_file_save_as();
@@ -104,11 +105,12 @@ gint on_file_save(void)
 	force_call_cb_modified_changed(pub->mw->view);
 //	undo_reset_step_modif();
 	return 0;
+*/
 }
 
 gint on_file_save_as(void)
 {
-	FileInfo *fi;
+/*	FileInfo *fi;
 
 	fi = get_fileinfo_from_selector(pub->fi, SAVE);
 	if (fi == NULL)
@@ -124,12 +126,13 @@ gint on_file_save_as(void)
 	force_call_cb_modified_changed(pub->mw->view);
 //	undo_init(sd->mainwin->textview, sd->mainwin->textbuffer, sd->mainwin->menubar);
 	return 0;
+*/
 }
 
 #if ENABLE_STATISTICS
 void on_file_stats(void)
 {
-	gchar * stats = file_stats( pub->mw->view, pub->fi );
+/*	gchar * stats = file_stats( pub->mw->view, pub->fi );
 
 	GtkMessageDialog * msg = (GtkMessageDialog *)
 		gtk_message_dialog_new_with_markup( NULL,
@@ -153,25 +156,28 @@ void on_file_stats(void)
 	gtk_widget_destroy( (GtkWidget *) msg );
 
 	g_free( stats );
+*/
 }
 #endif
 
 #if ENABLE_PRINT
 void on_file_print_preview(void)
 {
-	create_gtkprint_preview_session(GTK_TEXT_VIEW(pub->mw->view),
+/*	create_gtkprint_preview_session(GTK_TEXT_VIEW(pub->mw->view),
 		get_file_basename(pub->fi->filename, FALSE));
+*/
 }
 
 void on_file_print(void)
 {
-	create_gtkprint_session(GTK_TEXT_VIEW(pub->mw->view),
+/*	create_gtkprint_session(GTK_TEXT_VIEW(pub->mw->view),
 		get_file_basename(pub->fi->filename, FALSE));
+*/
 }
 #endif
 void on_file_close(void)
 {
-	if (!check_text_modification()) {
+/*	if (!check_text_modification()) {
 		force_block_cb_modified_changed(pub->mw->view);
 //		undo_block_signal(textbuffer);
 		gtk_text_buffer_set_text(pub->mw->buffer, "", 0);
@@ -191,6 +197,7 @@ void on_file_close(void)
 //		undo_unblock_signal(textbuffer);
 //		undo_init(sd->mainwin->textview, textbuffer, sd->mainwin->menubar);
 	}
+*/
 }
 
 void on_file_quit(void)
@@ -203,28 +210,31 @@ void on_file_quit(void)
 
 void on_edit_undo(void)
 {
-	undo_undo(pub->mw->buffer);
+	undo_undo(gtk_text_view_get_buffer(pub->mw->on_focus));
 }
 
 void on_edit_redo(void)
 {
-	undo_redo(pub->mw->buffer);
+	undo_redo(gtk_text_view_get_buffer(pub->mw->on_focus));
 }
 
 void on_edit_cut(void)
 {
-	g_signal_emit_by_name(G_OBJECT(pub->mw->view), "cut-clipboard");
+	g_signal_emit_by_name(G_OBJECT(pub->mw->on_focus), "cut-clipboard");
+
 }
 
 void on_edit_copy(void)
 {
-	g_signal_emit_by_name(G_OBJECT(pub->mw->view), "copy-clipboard");
+	g_signal_emit_by_name(G_OBJECT(pub->mw->on_focus), "copy-clipboard");
+
 }
 
 void on_edit_paste(void)
 {
-	g_signal_emit_by_name(G_OBJECT(pub->mw->view), "paste-clipboard");
-//	TODO: Use modify signal!!
+	g_signal_emit_by_name(G_OBJECT(pub->mw->on_focus), "paste-clipboard");
+
+	//	TODO: Use modify signal!!
 /*	gtk_text_view_scroll_mark_onscreen(
 		GTK_TEXT_VIEW(pub->mw->view),
 		gtk_text_buffer_get_insert(pub->mw->buffer));
@@ -232,12 +242,13 @@ void on_edit_paste(void)
 
 void on_edit_delete(void)
 {
-	gtk_text_buffer_delete_selection(pub->mw->buffer, TRUE, TRUE);
+	gtk_text_buffer_delete_selection(gtk_text_view_get_buffer(pub->mw->on_focus), TRUE, TRUE);
 }
 
 void on_edit_select_all(void)
 {
-	set_selection_bound(pub->mw->buffer, 0, -1);
+	set_selection_bound(gtk_text_view_get_buffer(pub->mw->on_focus), 0, -1);
+
 //	g_signal_emit_by_name(G_OBJECT(pub->mw->view), "select-all");
 }
 
@@ -247,10 +258,10 @@ static void activate_quick_find(void)
 
 	if (!flag) {
 		gtk_widget_set_sensitive(
-			gtk_ui_manager_get_widget(pub->mw->menubar, "/M/Search/FindNext"),
+			gtk_ui_manager_get_action(pub->mw->menubar, "/M/Search/FindNext"),
 			TRUE);
 		gtk_widget_set_sensitive(
-			gtk_ui_manager_get_widget(pub->mw->menubar, "/M/Search/FindPrevious"),
+			gtk_ui_manager_get_action(pub->mw->menubar, "/M/Search/FindPrevious"),
 			TRUE);
 		flag = TRUE;
 	}
@@ -258,53 +269,59 @@ static void activate_quick_find(void)
 
 void on_search_find(void)
 {
-	if (run_dialog_search(pub->mw->view, 0) == GTK_RESPONSE_OK)
+	if (run_dialog_search(pub->mw->on_focus, 0) == GTK_RESPONSE_OK)
 		activate_quick_find();
 }
 
 void on_search_find_next(void)
 {
-	document_search_real(pub->mw->view, 1);
+	document_search_real(pub->mw->on_focus, 1);
 }
 
 void on_search_find_previous(void)
 {
-	document_search_real(pub->mw->view, -1);
+	document_search_real(pub->mw->on_focus, -1);
 }
 
 void on_search_replace(void)
 {
-	if (run_dialog_search(pub->mw->view, 1) == GTK_RESPONSE_OK)
+/*	if (run_dialog_search(pub->mw->view, 1) == GTK_RESPONSE_OK)
 		activate_quick_find();
+*/
 }
 
 void on_search_jump_to(void)
 {
-	run_dialog_jump_to(pub->mw->view);
+/*	run_dialog_jump_to(pub->mw->view);
+ */
 }
 
 void on_option_font(void)
 {
-	change_text_font_by_selector(pub->mw->view);
+/*	change_text_font_by_selector(pub->mw->view);
+ */
 }
 
 void on_option_word_wrap(void)
 {
 	gboolean state;
-
+/*
 	state = gtk_toggle_action_get_active(
 		GTK_TOGGLE_ACTION(gtk_ui_manager_get_action(pub->mw->menubar, "/M/Options/WordWrap")));
 	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(pub->mw->view),
 		state ? GTK_WRAP_WORD : GTK_WRAP_NONE);
+*/
 }
 
 void on_option_line_numbers(void)
 {
 	gboolean state;
+/*
 
 	state = gtk_toggle_action_get_active(
 		GTK_TOGGLE_ACTION(gtk_ui_manager_get_action(pub->mw->menubar, "/M/Options/LineNumbers")));
 	show_line_numbers(pub->mw->view, state);
+*/
 }
 
 void on_option_always_on_top(void)
@@ -326,7 +343,12 @@ void on_option_auto_indent(void)
 
 void on_help_about(void)
 {
-	const gchar *copyright = "Copyright \xc2\xa9 2004-2010 Tarot Osuji\nCopyright \xc2\xa9 2011 Wen-Yen Chuang\nCopyright \xc2\xa9 2011 Jack Gandy\nCopyright \xc2\xa9 2012 Yoo, Taik-Yon\nCopyright \xc2\xa9 2014 Steven Honeyman";
+	printf("SW: allocated width = %i px\n", gtk_widget_get_allocated_width(pub->mw->window));
+	printf("viewport: allocated width = %i px\n", gtk_widget_get_allocated_width(pub->mw->table));
+
+	textiter({printf("r %i c %i %p\n", cRow, cCell, tempCell->next);});
+
+	const gchar *copyright = "Copyright \xc2\xa9 2004-2010 Tarot Osuji\nCopyright \xc2\xa9 2011 Wen-Yen Chuang\nCopyright \xc2\xa9 2012 Yoo, Taik-Yon\nCopyright \xc2\xa9 2011 Jack Gandy";
 	const gchar *comments = _("GTK+ based simple text editor");
 	const gchar *authors[] = {
 		"Tarot Osuji <tarot@sdf.lonestar.org>",
@@ -356,3 +378,102 @@ void on_help_about(void)
 		"logo-icon-name", PACKAGE,
 		NULL);
 }
+
+// view lost focus
+//
+
+gboolean on_focus_out(GtkWidget* w)
+{
+	printf("Lost focus on view\n");
+
+	return FALSE;
+}
+
+// view got focus
+//
+
+gboolean on_focus_in(GtkWidget* w)
+{
+	printf("Got focus on view\n");
+
+/*	Row* tempRow = pub->mw->rows;
+	if (tempRow == NULL) return 0;
+
+	SingleCell* tempCell;
+
+	int cRow = 0, cCell = 0;
+
+	do {
+		tempCell = tempRow->first;
+
+		do {
+			if(tempCell->text == w)
+				break;
+
+			cCell++;
+
+		} while( (tempCell = tempCell->next) != NULL );
+
+		cCell = 0;
+		cRow++;
+	} while( (tempRow = tempRow->next) != NULL );
+
+	printf("Row: %i | Cell: %i\n", cRow, cCell);
+*/
+
+	pub->mw->on_focus = w;
+	return FALSE;
+}
+
+gboolean on_widget_scroll_event(GdkEventScroll event) {
+//	if ((event.direction == GdkScrollDirection.UP) || (event.direction == Gdk.ScrollDirection.DOWN)) {
+//		pub->mw->scrollbar.scroll_event(event);
+//	} else if ((event.direction == Gdk.ScrollDirection.LEFT) || (event.direction == Gdk.ScrollDirection.RIGHT)) {
+//		this.hscrollbar.scroll_event(event);
+//	}
+	return TRUE;
+}
+
+void on_size_change(GtkWidget *widget, GdkRectangle *allocation, gpointer user_data)
+{
+/*	static int in_use = 0;
+
+	if(in_use) {
+		printf("Dropped size change event\n");
+		return;
+	}
+
+	in_use=1;
+	int max=0;
+
+	GtkAllocation vbox_alloc;
+	gtk_widget_get_allocation(pub->mw->columns[0]->first->text, &vbox_alloc);
+
+	int i, min_h, nat_h;
+
+	for(i=0;i<pub->mw->count;i++) {
+		gtk_widget_set_size_request (pub->mw->columns[i]->first->text, -1, -1);
+//		gtk_widget_get_allocation(pub->mw->columns[i]->first->text, &temp);
+		//gtk_widget_get_preferred_height(pub->mw->columns[i]->first->text, &min_h, &nat_h);
+		GtkRequisition req;
+		gtk_widget_size_request (pub->mw->columns[i]->first->text, &req);
+
+		printf("%i - Natural size: %i\n", i, req.height);
+
+		if(req.height > max) max = req.height;
+//		if(temp.height > max) max = temp.height;
+//		if(nat_h > max) max = nat_h;
+		//if(widget == pub->mw->columns[i]->first->text) {
+		//	printf("Got it! Change on View #%i\n", i);
+		//}
+	}
+
+	vbox_alloc.height = max;
+
+	for(i=0;i<pub->mw->count;i++) {
+		//gtk_widget_set_size_request(pub->mw->columns[i]->first->text, alloc.width, alloc.height);
+		gtk_widget_size_allocate(pub->mw->columns[i]->first->text, &vbox_alloc);
+	}
+
+	in_use=0;
+*/}

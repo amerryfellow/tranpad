@@ -30,4 +30,21 @@ void set_view_scroll(void);
 gint check_text_modification(void);
 GtkWidget *create_text_view(void);
 
+typedef struct SingleCellStruct {
+	GtkWidget*	vbox;
+	GtkWidget*	text;
+	GtkTextBuffer*	buffer;
+	struct SingleCellStruct*	prev;
+	struct SingleCellStruct*	next;
+} SingleCell;
+
+typedef struct RowStruct {
+	SingleCell*		first;
+	struct RowStruct*		prev;
+	struct RowStruct*		next;
+} Row;
+
+SingleCell* create_cell();
+Row* create_row(GtkAdjustment* adj, int count);
+
 #endif /* _VIEW_H */

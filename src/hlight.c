@@ -83,6 +83,7 @@ void hlight_init(GtkTextBuffer *buffer)
 	g_signal_handlers_block_by_func(G_OBJECT(buffer),
 		G_CALLBACK(cb_changed), NULL);
 
-	g_signal_connect(G_OBJECT(pub->mw->view), "paste-clipboard",
+/*	g_signal_connect(G_OBJECT(pub->mw->view), "paste-clipboard",
 		G_CALLBACK(cb_paste_clipboard), NULL);
+*/
 }

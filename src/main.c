@@ -83,7 +83,7 @@ void save_config_file(void)
 	gboolean wordwrap, linenumbers, autoindent;
 
 	gtk_window_get_size(GTK_WINDOW(pub->mw->window), &width, &height);
-	fontname = pango_font_description_to_string(gtk_style_context_get_font(gtk_widget_get_style_context(pub->mw->view), 0));
+	fontname = pango_font_description_to_string(gtk_style_context_get_font(gtk_widget_get_style_context(pub->mw->rows->first->text), 0));
 	wordwrap = gtk_toggle_action_get_active(
 		GTK_TOGGLE_ACTION(gtk_ui_manager_get_action(pub->mw->menubar,
 			"/M/Options/WordWrap")));
@@ -233,7 +233,8 @@ gint main(gint argc, gchar **argv)
 
 	gtk_window_set_default_size(
 		GTK_WINDOW(pub->mw->window), conf->width, conf->height);
-	set_text_font_by_name(pub->mw->view, conf->fontname);
+/*	set_text_font_by_name(pub->mw->view, conf->fontname);
+ */
 
 	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(
 		gtk_ui_manager_get_widget(pub->mw->menubar, "/M/Options/WordWrap")),
@@ -241,8 +242,10 @@ gint main(gint argc, gchar **argv)
 	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(
 		gtk_ui_manager_get_widget(pub->mw->menubar, "/M/Options/LineNumbers")),
 		conf->linenumbers);
+/*
 	indent_set_default_tab_width(conf->tabwidth);
 	indent_refresh_tab_width(pub->mw->view);
+ */
 	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(
 		gtk_ui_manager_get_widget(pub->mw->menubar, "/M/Options/AutoIndent")),
 		conf->autoindent);
@@ -255,19 +258,22 @@ gint main(gint argc, gchar **argv)
 	check_emacs_key_theme(GTK_WINDOW(pub->mw->window), pub->mw->menubar);
 #endif
 
-	hlight_init(pub->mw->buffer);
-	undo_init(pub->mw->view,
-		gtk_ui_manager_get_widget(pub->mw->menubar, "/M/Edit/Undo"),
-		gtk_ui_manager_get_widget(pub->mw->menubar, "/M/Edit/Redo"));
 //	hlight_init(pub->mw->buffer);
-	dnd_init(pub->mw->view);
+	undo_init(
+		gtk_ui_manager_get_widget(pub->mw->menubar, "/M/Edit/Undo"),
+		gtk_ui_manager_get_widget(pub->mw->menubar, "/M/Edit/Redo")
+	);
+//	hlight_init(pub->mw->buffer);
+//	dnd_init(pub->mw->view);
 
 	if (pub->fi->filename)
-		file_open_real(pub->mw->view, pub->fi);
+		file_open_real(pub->mw->rows->first->text, pub->fi);
 #ifdef G_OS_UNIX
 	else
 		stdin_data = gedit_utils_get_stdin();
 #endif
+
+	// Fill buffer with STDIN
 	if (stdin_data) {
 		gchar *str;
 		GtkTextIter iter;
@@ -277,16 +283,16 @@ gint main(gint argc, gchar **argv)
 		g_free(stdin_data);
 
 //		gtk_text_buffer_set_text(buffer, "", 0);
-		gtk_text_buffer_get_start_iter(pub->mw->buffer, &iter);
-		gtk_text_buffer_insert(pub->mw->buffer, &iter, str, strlen(str));
-		gtk_text_buffer_get_start_iter(pub->mw->buffer, &iter);
-		gtk_text_buffer_place_cursor(pub->mw->buffer, &iter);
-		gtk_text_buffer_set_modified(pub->mw->buffer, FALSE);
-		gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(pub->mw->view), &iter, 0, FALSE, 0, 0);
+		gtk_text_buffer_get_start_iter(pub->mw->rows->first->buffer, &iter);
+		gtk_text_buffer_insert(pub->mw->rows->first->buffer, &iter, str, strlen(str));
+		gtk_text_buffer_get_start_iter(pub->mw->rows->first->buffer, &iter);
+		gtk_text_buffer_place_cursor(pub->mw->rows->first->buffer, &iter);
+		gtk_text_buffer_set_modified(pub->mw->rows->first->buffer, FALSE);
+		gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(pub->mw->rows->first->text), &iter, 0, FALSE, 0, 0);
 		g_free(str);
 	}
 
-	if (jump_linenum) {
+/*	if (jump_linenum) {
 		GtkTextIter iter;
 
 		gtk_text_buffer_get_iter_at_line(pub->mw->buffer, &iter, jump_linenum - 1);
@@ -294,9 +300,10 @@ gint main(gint argc, gchar **argv)
 //		gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(textview), &iter, 0.1, FALSE, 0.5, 0.5);
 		scroll_to_cursor(pub->mw->buffer, 0.25);
 	}
-
+*/
 	set_main_window_title();
-	indent_refresh_tab_width(pub->mw->view);
+/*	indent_refresh_tab_width(pub->mw->view);
+ *	*/
 //	hlight_apply_all(pub->mw->buffer);
 
 	gtk_main();
